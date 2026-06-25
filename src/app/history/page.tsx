@@ -2,7 +2,7 @@ import { Clock, Gift, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { requireUser } from "@/lib/auth";
-import { mockTyfcbEntries, mockVisitors } from "@/lib/domain/mock-data";
+import { query } from "@/lib/db";
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -22,12 +22,74 @@ const STATUS_LABEL: Record<string, string> = {
   hadir_penuh: "Hadir Penuh",
 };
 
-export default async function HistoryPage() {
-  await requireUser();
+type TyfcbEntry = {
+  id: string;
+  receiver_name: string | null;
+  nilai: number;
+  tanggal: string;
+  status: string;
+  computed_score: number | null;
+  rejection_reason: string | null;
+};
 
-  // Filter to current member's entries (mock: member-1)
-  const myTyfcb = mockTyfcbEntries.filter((e) => e.giver_id === "member-1");
-  const myVisitors = mockVisitors.filter((v) => v.inviter_id === "member-1");
+type VisitorEntry = {
+  id: string;
+  nama: string;
+  kontak: string;
+  tanggal_undang: string;
+  status_hadir: string;
+  is_converted: boolean;
+  tanggal_konversi: string | null;
+};
+
+async function getMemberHistory(userId: string) {
+  const { rows: memberRows } = await query<{ id: string; season_id: string }>(`
+    select m.id, m.season_id
+    from members m
+    join event_seasons es on es.id = m.season_id
+    where m.user_id = $1 and es.nama = 'BRAG 2026'
+    limit 1
+  `, [userId]);
+
+  if (!memberRows[0]) return { tyfcb: [], visitors: [] };
+
+  const { id: memberId } = memberRows[0];
+
+  const [tyfcbResult, visitorsResult] = await Promise.all([
+    query<TyfcbEntry>(`
+      select
+        te.id,
+        u.full_name as receiver_name,
+        te.nilai::int,
+        to_char(te.tanggal, 'DD Mon YYYY') as tanggal,
+        te.status::text as status,
+        te.computed_score,
+        te.rejection_reason
+      from tyfcb_entries te
+      left join members mr on mr.id = te.receiver_id
+      left join app_users u on u.id = mr.user_id
+      where te.giver_id = $1
+      order by te.created_at desc
+    `, [memberId]),
+    query<VisitorEntry>(`
+      select
+        id, nama, kontak,
+        to_char(tanggal_undang, 'DD Mon YYYY') as tanggal_undang,
+        status_hadir::text as status_hadir,
+        is_converted,
+        to_char(tanggal_konversi, 'DD Mon YYYY') as tanggal_konversi
+      from visitors
+      where inviter_id = $1
+      order by created_at desc
+    `, [memberId]),
+  ]);
+
+  return { tyfcb: tyfcbResult.rows, visitors: visitorsResult.rows };
+}
+
+export default async function HistoryPage() {
+  const { user } = await requireUser();
+  const { tyfcb: myTyfcb, visitors: myVisitors } = await getMemberHistory(user.id);
 
   return (
     <AppShell>
@@ -68,10 +130,10 @@ export default async function HistoryPage() {
                 >
                   <div className="min-w-0">
                     <p className="truncate font-black text-ink">
-                      → {entry.receiver_name ?? entry.receiver_id}
+                      → {entry.receiver_name ?? "—"}
                     </p>
                     <p className="mt-0.5 text-sm text-muted">
-                      Rp {entry.nilai.toLocaleString("id-ID")} · {entry.tanggal}
+                      Rp {Number(entry.nilai).toLocaleString("id-ID")} · {entry.tanggal}
                     </p>
                     {entry.status === "rejected" && entry.rejection_reason && (
                       <p className="mt-1 text-xs text-red-600">
@@ -161,7 +223,7 @@ export default async function HistoryPage() {
 
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-muted">
           <Clock className="h-3.5 w-3.5" />
-          <span>Data real akan ditampilkan setelah API terhubung.</span>
+          <span>Data diperbarui langsung dari database.</span>
         </div>
       </div>
     </AppShell>

@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app-shell";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { query } from "@/lib/db";
 import { VisitorsAdminClient, type VisitorRow } from "./visitors-client";
 
@@ -22,10 +22,7 @@ async function getVisitors(): Promise<VisitorRow[]> {
 }
 
 export default async function AdminVisitorsPage() {
-  const { user } = await requireUser();
-  if (user.role !== "admin" && user.role !== "super_admin") {
-    return <div className="p-8 text-center text-muted">Akses ditolak.</div>;
-  }
+  await requireAdmin();
 
   const visitors = await getVisitors();
 

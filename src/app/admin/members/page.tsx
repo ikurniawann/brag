@@ -1,6 +1,6 @@
 import { UserPlus } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { query } from "@/lib/db";
 import { MemberTable } from "./members-client";
 
@@ -55,7 +55,7 @@ async function getKlasifikasi() {
 }
 
 export default async function AdminMembersPage() {
-  await requireUser();
+  await requireAdmin();
   const [members, teams, klasifikasi] = await Promise.all([
     getMembers(),
     getTeams(),

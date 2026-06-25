@@ -1,12 +1,12 @@
 import { Check, SlidersHorizontal, Users, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { mockTeams, mockTyfcbEntries } from "@/lib/domain/mock-data";
 import { formatPoints } from "@/lib/utils";
 
 export default async function AdminPage() {
-  await requireUser();
+  await requireAdmin();
 
   const pending = mockTyfcbEntries.filter((e) => e.status === "pending");
 
