@@ -9,7 +9,7 @@ deploy-production:
     - source ~/.bash_profile
     - cd ~/brag2026
     - git pull origin main
-    - npm ci --omit=dev
+    - npm ci
     - npm run build
     - pm2 restart brag2026
     - echo "Deploy selesai $(date)"
