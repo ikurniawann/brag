@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE } from "@/lib/local-auth";
+
+const SESSION_COOKIE = "brag_session";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
