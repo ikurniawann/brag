@@ -1,4 +1,5 @@
 import { Mail, LockKeyhole, LogIn } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { login } from "./actions";
 
@@ -12,9 +13,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="mx-auto grid min-h-screen w-full max-w-6xl items-center px-4 py-8 sm:px-6 lg:grid-cols-[1fr_440px] lg:px-8">
       <section className="hidden pr-12 lg:block">
-        <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-700">
-          BRAG
-        </p>
+        <Image
+          src="/bni-grow-logo.png"
+          alt="BNI Grow"
+          width={160}
+          height={50}
+          className="h-12 w-auto object-contain"
+          priority
+        />
         <h1 className="mt-3 max-w-xl text-6xl font-black tracking-normal text-ink">
           Compete together. Win as a group.
         </h1>
@@ -26,7 +32,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
       <section className="glass-panel rounded-3xl p-5 shadow-glass sm:p-7">
         <div className="mb-8">
-          <p className="text-4xl font-black text-brand-600">BRAG</p>
+          <Image
+            src="/bni-grow-logo.png"
+            alt="BNI Grow"
+            width={140}
+            height={44}
+            className="h-10 w-auto object-contain"
+            priority
+          />
           <h2 className="mt-6 text-3xl font-black text-ink">Sign in</h2>
           <p className="mt-2 text-sm text-muted">
             Use the email and password prepared by the committee.
