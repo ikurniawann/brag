@@ -6,7 +6,10 @@ The program runs for around three months. Members are grouped by the committee, 
 
 ## Project Status
 
-Initial project brief and planning repository.
+Initial Next.js MVP scaffold in progress. The app currently includes the first
+member dashboard, login screen, submission form, leaderboard, awards view, admin
+verification surface, local PostgreSQL auth, and an initial local database
+migration.
 
 ## Product Direction
 
@@ -26,4 +29,26 @@ Initial project brief and planning repository.
 - [Project Brief](./docs/project-brief.md)
 - [Product Requirements](./docs/product-requirements.md)
 - [Gamification Draft](./docs/gamification-draft.md)
+- [Architecture Notes](./docs/architecture.md)
 
+## Local Development
+
+Copy `.env.example` to `.env.local` and set the local database URL:
+
+```bash
+DATABASE_URL=postgresql:///brag_dev
+```
+
+Then install dependencies and run:
+
+```bash
+npm install
+psql -d postgres -c "create database brag_dev;"
+psql -d brag_dev -f db/local/001_initial.sql
+npm run dev
+```
+
+Default local superadmin:
+
+- Email: `ilham@wit.id`
+- Password: `admin123`

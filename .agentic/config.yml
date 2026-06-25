@@ -1,0 +1,59 @@
+project:
+  name: brag
+  repo: ""
+  type: single-app
+
+package_manager: npm
+
+monorepo:
+  tool: ""
+  workspaces: []
+
+branches:
+  integration: main
+  primary: main
+
+deploy:
+  dev_command: npm run build
+  health_url: http://localhost:3000/api/health
+  smoke_user: ""
+
+protected_paths:
+  - db/local/
+  - .env.local
+  - .env
+
+conventions:
+  page_pattern: src/app/**/page.tsx
+  shared_types: src/lib/domain/types.ts
+  notes: |
+    Next.js App Router. Server Components by default, 'use client' only when needed.
+    Auth via local PostgreSQL (local-auth.ts). DB access via pg client (lib/db.ts).
+    Tailwind CSS + glassmorphism design. Mobile-first.
+
+tenant:
+  scope_fields: []
+
+guardrail:
+  override_env: AGENTIC_OVERRIDE
+
+gates:
+  qa: scripts/qa.sh
+  test: scripts/test.sh
+  security: scripts/security-check.sh
+
+memory:
+  enabled: true
+  namespace: brag
+  warm_start: true
+  top_k: 8
+
+docs:
+  root: docs
+  prd: docs/product/PRD.md
+  stories: docs/product/USER-STORIES.md
+  acceptance: docs/product/ACCEPTANCE-CRITERIA.md
+  tasks: docs/product/ENGINEERING-TASKS.md
+  backlog: docs/BACKLOG.md
+  epics: docs/epics
+  definition_of_done: docs/DEFINITION-OF-DONE.md
