@@ -17,7 +17,7 @@ export function DesktopNav() {
 
   return (
     <nav className="fixed bottom-6 left-1/2 z-20 hidden -translate-x-1/2 lg:block">
-      <div className="flex items-center gap-1 rounded-full border border-brand-100/70 bg-white/88 px-3 py-2 shadow-[0_8px_48px_rgba(196,18,48,0.13)] backdrop-blur-xl">
+      <div className="flex items-center gap-1 rounded-full border border-brand-100 bg-white px-3 py-2 shadow-[0_8px_48px_rgba(0,0,0,0.18)]">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
