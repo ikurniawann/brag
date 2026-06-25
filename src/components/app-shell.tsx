@@ -3,6 +3,7 @@ import { BarChart3, Home, Plus, Users, Zap } from "lucide-react";
 import { getCurrentUser } from "@/lib/local-auth";
 import { NotificationBell } from "./notification-bell";
 import { ProfileMenu } from "./profile-menu";
+import { DesktopNav } from "./desktop-nav";
 
 const navItems = [
   { href: "/",             label: "Dashboard",   icon: Home },
@@ -17,7 +18,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const isAdmin = user?.role === "admin";
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-8">
+    <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-28">
       <header className="mb-6 flex items-center justify-between">
         <Link href="/" className="leading-none" aria-label="BRAG dashboard">
           <span className="block text-4xl font-black tracking-normal text-brand-600">
@@ -46,6 +47,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="flex-1">{children}</main>
+
+      <DesktopNav />
 
       <nav className="safe-bottom fixed inset-x-0 bottom-0 z-20 border-t border-brand-100 bg-white/92 px-2 pt-2 shadow-[0_-14px_40px_rgba(80,0,18,0.10)] backdrop-blur-xl lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-1">
