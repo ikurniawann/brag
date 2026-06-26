@@ -1,7 +1,12 @@
-import { Mail, LockKeyhole, LogIn } from "lucide-react";
+import { Mail, LockKeyhole, LogIn, Send } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { login } from "./actions";
+
+const WA_NUMBER = "6281809078014";
+const WA_TEXT = encodeURIComponent(
+  "Halo Ilham, saya ingin meminta reset password akun BRAG 2026 saya. Mohon bantuannya ya. Terima kasih 🙏"
+);
 
 type LoginPageProps = {
   searchParams: Promise<{ error?: string }>;
@@ -84,6 +89,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Login
           </Button>
         </form>
+
+        <div className="mt-4">
+          <a
+            href={`https://wa.me/${WA_NUMBER}?text=${WA_TEXT}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700 transition hover:bg-green-100"
+          >
+            <Send className="h-4 w-4" />
+            Lupa password? Chat Admin via WhatsApp
+          </a>
+        </div>
       </section>
     </main>
   );

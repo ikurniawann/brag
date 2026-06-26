@@ -1,6 +1,6 @@
 "use client";
 
-import { Banknote, LogOut, UserCheck, Users, Zap, UsersRound } from "lucide-react";
+import { Banknote, KeyRound, LogOut, UserCheck, UserCircle, Users, Zap, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { logout } from "@/app/login/actions";
@@ -70,6 +70,17 @@ export function ProfileMenu({
               <div className="border-t border-brand-50" />
             </>
           )}
+
+          {/* Profile & settings */}
+          <Link
+            href="/profile"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-ink hover:bg-brand-50"
+          >
+            <UserCircle className="h-4 w-4 text-brand-600" />
+            Profil & Ganti Password
+          </Link>
+          <div className="border-t border-brand-50" />
 
           {/* Logout */}
           <form action={logout}>
