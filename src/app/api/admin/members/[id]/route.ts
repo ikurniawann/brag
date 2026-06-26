@@ -12,7 +12,25 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { full_name, email, team_id, klasifikasi_id, color_status, is_active } = body;
+  const { full_name, email, team_id, klasifikasi_id, color_status, is_active, role } = body;
+
+  // Role promotion/demotion — separate path, cannot demote yourself
+  if (role !== undefined) {
+    if (role !== "admin" && role !== "member") {
+      return Response.json({ error: "Role tidak valid." }, { status: 400 });
+    }
+
+    const { rows: target } = await query<{ user_id: string }>(
+      `select user_id from members where id = $1`, [id]
+    );
+    if (!target[0]) return Response.json({ error: "Member tidak ditemukan." }, { status: 404 });
+    if (role === "member" && target[0].user_id === user.id) {
+      return Response.json({ error: "Tidak bisa menurunkan role diri sendiri." }, { status: 400 });
+    }
+
+    await query(`update app_users set role = $1 where id = $2`, [role, target[0].user_id]);
+    return Response.json({ ok: true });
+  }
 
   // Update competition profile
   await query(

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Pencil, X } from "lucide-react";
+import { Check, ChevronDown, Pencil, ShieldCheck, ShieldOff, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -9,6 +9,7 @@ type Member = {
   user_id: string;
   full_name: string;
   email: string;
+  role: string;
   team_id: string | null;
   nama_tim: string | null;
   klasifikasi_id: string | null;
@@ -126,7 +127,7 @@ function EditRow({
           className="h-4 w-4 accent-brand-600"
         />
       </td>
-      <td className="px-3 py-2">
+      <td className="px-3 py-2" colSpan={2}>
         <div className="flex gap-1.5">
           <button
             onClick={save}
@@ -148,6 +149,53 @@ function EditRow({
   );
 }
 
+function RoleToggleButton({ member, onDone }: { member: Member; onDone: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const isAdmin = member.role === "admin";
+
+  async function toggle() {
+    const newRole = isAdmin ? "member" : "admin";
+    const label = isAdmin ? `Turunkan ${member.full_name} ke Member?` : `Jadikan ${member.full_name} Admin?`;
+    if (!window.confirm(label)) return;
+
+    setLoading(true);
+    const res = await fetch(`/api/admin/members/${member.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: newRole }),
+    });
+    setLoading(false);
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error ?? "Gagal mengubah role.");
+      return;
+    }
+    onDone();
+  }
+
+  return (
+    <button
+      onClick={toggle}
+      disabled={loading}
+      title={isAdmin ? "Turunkan ke Member" : "Jadikan Admin"}
+      className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold transition disabled:opacity-50 ${
+        isAdmin
+          ? "border-red-100 bg-red-50 text-red-700 hover:bg-red-100"
+          : "border-brand-100 bg-white text-brand-700 hover:border-brand-300 hover:bg-brand-50"
+      }`}
+    >
+      {loading ? (
+        "..."
+      ) : isAdmin ? (
+        <><ShieldOff className="h-3 w-3" /> Turunkan</>
+      ) : (
+        <><ShieldCheck className="h-3 w-3" /> Jadi Admin</>
+      )}
+    </button>
+  );
+}
+
 export function MemberTable({
   members,
   teams,
@@ -165,7 +213,6 @@ export function MemberTable({
     ? members.filter((m) => m.team_id === filterTeam)
     : members;
 
-  // Group by team
   const groups = teams
     .map((t) => ({
       team: t,
@@ -173,16 +220,10 @@ export function MemberTable({
     }))
     .filter((g) => g.rows.length > 0);
 
-  if (filterTeam) {
-    // Flat view when filtered
-    const group = groups[0];
-    if (!group) return <p className="text-center text-muted py-12">Tidak ada member.</p>;
-  }
-
   return (
     <div className="space-y-6">
       {/* Filter bar */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex flex-wrap gap-3">
         <div className="relative">
           <select
             className="appearance-none rounded-full border border-brand-100 bg-white pl-4 pr-8 py-2 text-sm font-bold text-ink focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -201,8 +242,8 @@ export function MemberTable({
 
       {/* Tables per team */}
       {groups.map(({ team, rows }) => (
-        <section key={team.id} className="glass-panel rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-brand-100">
+        <section key={team.id} className="glass-panel overflow-hidden rounded-2xl">
+          <div className="flex items-center justify-between border-b border-brand-100 px-4 py-3">
             <h2 className="font-black text-ink">{team.nama_tim}</h2>
             <span className="text-sm text-muted">{rows.length} member</span>
           </div>
@@ -215,6 +256,7 @@ export function MemberTable({
                   <th className="px-3 py-2 text-left">Klasifikasi</th>
                   <th className="px-3 py-2 text-left">Status</th>
                   <th className="px-3 py-2 text-center">Aktif</th>
+                  <th className="px-3 py-2 text-left">Role</th>
                   <th className="px-3 py-2" />
                 </tr>
               </thead>
@@ -251,13 +293,28 @@ export function MemberTable({
                         </span>
                       </td>
                       <td className="px-3 py-2.5">
-                        <button
-                          onClick={() => setEditingId(m.id)}
-                          className="flex items-center gap-1 rounded-lg border border-brand-100 bg-white px-2.5 py-1 text-xs font-bold text-muted hover:text-brand-600 hover:border-brand-300 transition"
-                        >
-                          <Pencil className="h-3 w-3" />
-                          Edit
-                        </button>
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                          m.role === "admin"
+                            ? "bg-brand-50 text-brand-700"
+                            : "bg-slate-50 text-slate-500"
+                        }`}>
+                          {m.role === "admin" ? "Admin" : "Member"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => setEditingId(m.id)}
+                            className="flex items-center gap-1 rounded-lg border border-brand-100 bg-white px-2.5 py-1 text-xs font-bold text-muted transition hover:border-brand-300 hover:text-brand-600"
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Edit
+                          </button>
+                          <RoleToggleButton
+                            member={m}
+                            onDone={() => router.refresh()}
+                          />
+                        </div>
                       </td>
                     </tr>
                   )

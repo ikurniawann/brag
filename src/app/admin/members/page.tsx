@@ -10,6 +10,7 @@ async function getMembers() {
     user_id: string;
     full_name: string;
     email: string;
+    role: string;
     team_id: string | null;
     nama_tim: string | null;
     klasifikasi_id: string | null;
@@ -20,7 +21,7 @@ async function getMembers() {
     select
       m.id, m.user_id, m.team_id, m.klasifikasi_id,
       m.color_status, m.is_active,
-      u.full_name, u.email,
+      u.full_name, u.email, u.role,
       t.nama_tim,
       c.nama as klasifikasi_nama
     from members m
