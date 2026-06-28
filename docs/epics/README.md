@@ -7,6 +7,7 @@
 | [EPIC-002](./EPIC-002-admin-verification.md) | Admin Verification & Management | backlog | P0 |
 | [EPIC-003](./EPIC-003-leaderboard-scoring.md) | Leaderboard & Scoring Engine | backlog | P0 |
 | [EPIC-004](./EPIC-004-booster-awards.md) | Booster Rules & Awards | backlog | P1 |
+| [EPIC-005](./EPIC-005-captain-role.md) | Captain Role | backlog | P1 |
 
 ## Epic Lifecycle
 
