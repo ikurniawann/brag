@@ -74,7 +74,7 @@ export function ProfileMenu({
           )}
 
           {/* Captain section */}
-          {(isCaptain || isAdmin) && !isAdmin && (
+          {isCaptain && (
             <>
               <div className="border-b border-brand-50 px-4 py-2">
                 <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-amber-700">
