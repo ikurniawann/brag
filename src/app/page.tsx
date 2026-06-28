@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Banknote, ChevronRight, Gift, Trophy, UserPlus, Users, Zap } from "lucide-react";
+import { Banknote, ChevronRight, Crown, Gift, Medal, Trophy, UserPlus, Users, Zap } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { StatCard } from "@/components/stat-card";
 import { Button } from "@/components/ui/button";
@@ -115,6 +115,46 @@ async function getActiveBoosters(seasonId: string) {
   return rows;
 }
 
+async function getTopContributors(seasonId: string) {
+  const { rows } = await query<{
+    kategori: string;
+    full_name: string;
+    nama_tim: string | null;
+    score: number;
+  }>(`
+    with member_scores as (
+      select
+        m.id,
+        u.full_name,
+        t.nama_tim,
+        coalesce(sum(case when sl.kategori = 'tyfcb'  then sl.points else 0 end), 0) as score_tyfcb,
+        coalesce(sum(case when sl.kategori = 'visitor' then sl.points else 0 end), 0) as score_visitor,
+        coalesce(sum(sl.points), 0) as score_overall
+      from members m
+      join app_users u on u.id = m.user_id
+      left join teams t on t.id = m.team_id
+      left join score_ledger sl on sl.member_id = m.id and sl.season_id = $1
+      where m.season_id = $1
+      group by m.id, u.full_name, t.nama_tim
+    )
+    select * from (
+      select 'overall' as kategori, full_name, nama_tim, score_overall::int as score
+      from member_scores order by score_overall desc limit 1
+    ) t1
+    union all
+    select * from (
+      select 'tyfcb', full_name, nama_tim, score_tyfcb::int
+      from member_scores where score_tyfcb > 0 order by score_tyfcb desc limit 1
+    ) t2
+    union all
+    select * from (
+      select 'visitor', full_name, nama_tim, score_visitor::int
+      from member_scores where score_visitor > 0 order by score_visitor desc limit 1
+    ) t3
+  `, [seasonId]);
+  return rows;
+}
+
 async function getRecentTyfcb(memberId: string) {
   const { rows } = await query<{
     id: string;
@@ -163,11 +203,12 @@ export default async function MemberDashboardPage() {
   }
 
   // Run all remaining queries in parallel
-  const [rawScores, teams, activeBoosters, recentTyfcb] = await Promise.all([
+  const [rawScores, teams, activeBoosters, recentTyfcb, topContributors] = await Promise.all([
     getMemberScores(member.id, member.season_id),
     getTeamStandings(member.season_id),
     getActiveBoosters(member.season_id),
     getRecentTyfcb(member.id),
+    getTopContributors(member.season_id),
   ]);
 
   // pg returns numerics as strings; coerce to number
@@ -243,6 +284,118 @@ export default async function MemberDashboardPage() {
               );
             })}
           </div>
+
+          {/* Top Contributors */}
+          {topContributors.length > 0 && (() => {
+            const TOP_META: Record<string, {
+              label: string;
+              sublabel: string;
+              icon: React.ElementType;
+              gradient: string;
+              avatarBg: string;
+              badgeBg: string;
+            }> = {
+              overall: {
+                label: "Overall",
+                sublabel: "Total Poin Tertinggi",
+                icon: Crown,
+                gradient: "from-yellow-400 via-amber-400 to-orange-400",
+                avatarBg: "bg-white/25",
+                badgeBg: "bg-white/20 text-white",
+              },
+              tyfcb: {
+                label: "TYFCB",
+                sublabel: "Poin TYFCB Tertinggi",
+                icon: Medal,
+                gradient: "from-brand-600 via-red-600 to-rose-500",
+                avatarBg: "bg-white/20",
+                badgeBg: "bg-white/20 text-white",
+              },
+              visitor: {
+                label: "Visitor",
+                sublabel: "Poin Visitor Tertinggi",
+                icon: Trophy,
+                gradient: "from-orange-500 via-amber-500 to-yellow-400",
+                avatarBg: "bg-white/25",
+                badgeBg: "bg-white/20 text-white",
+              },
+            };
+
+            return (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-black uppercase tracking-[0.1em] text-brand-700">
+                    ⭐ Top Kontributor
+                  </p>
+                  <Link href="/leaderboard" className="text-sm font-bold text-brand-600 hover:underline">
+                    Lihat Leaderboard →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {topContributors.map((top) => {
+                    const meta = TOP_META[top.kategori];
+                    if (!meta) return null;
+                    const Icon = meta.icon;
+                    const initials = top.full_name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase();
+
+                    return (
+                      <div
+                        key={top.kategori}
+                        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${meta.gradient} p-4 text-white shadow-lift`}
+                      >
+                        {/* Background decoration */}
+                        <div className="pointer-events-none absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10" />
+                        <div className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-white/10" />
+
+                        {/* Category header */}
+                        <div className="relative flex items-center gap-2 mb-3">
+                          <span className="grid h-7 w-7 place-items-center rounded-full bg-white/20">
+                            <Icon className="h-3.5 w-3.5 text-white" />
+                          </span>
+                          <div>
+                            <p className="text-[0.65rem] font-bold uppercase tracking-[0.15em] text-white/70">
+                              {meta.sublabel}
+                            </p>
+                            <p className="text-xs font-black text-white leading-tight">{meta.label}</p>
+                          </div>
+                        </div>
+
+                        {/* Winner info */}
+                        <div className="relative flex items-center gap-3">
+                          <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${meta.avatarBg} text-base font-black text-white ring-2 ring-white/30`}>
+                            {initials}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-black text-white leading-tight">
+                              {top.full_name}
+                            </p>
+                            <p className="truncate text-xs text-white/70">
+                              {top.nama_tim ?? "—"}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Score badge */}
+                        <div className="relative mt-3 flex items-center justify-between">
+                          <span className={`rounded-full px-3 py-1 text-sm font-black ${meta.badgeBg}`}>
+                            {formatPoints(Number(top.score))} pts
+                          </span>
+                          <span className="text-lg">
+                            {top.kategori === "overall" ? "👑" : top.kategori === "tyfcb" ? "🏅" : "🌟"}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Active boosters */}
           {activeBoosters.length > 0 ? (
