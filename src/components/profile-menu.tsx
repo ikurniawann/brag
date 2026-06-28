@@ -1,6 +1,6 @@
 "use client";
 
-import { Banknote, KeyRound, LogOut, UserCheck, UserCircle, Users, Zap, UsersRound } from "lucide-react";
+import { Banknote, KeyRound, LogOut, Shield, UserCheck, UserCircle, Users, Zap, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { logout } from "@/app/login/actions";
@@ -16,9 +16,11 @@ const adminLinks = [
 export function ProfileMenu({
   initials,
   isAdmin,
+  isCaptain,
 }: {
   initials: string;
   isAdmin: boolean;
+  isCaptain?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -67,6 +69,26 @@ export function ProfileMenu({
                   </Link>
                 );
               })}
+              <div className="border-t border-brand-50" />
+            </>
+          )}
+
+          {/* Captain section */}
+          {(isCaptain || isAdmin) && !isAdmin && (
+            <>
+              <div className="border-b border-brand-50 px-4 py-2">
+                <p className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-amber-700">
+                  Kapten Tim
+                </p>
+              </div>
+              <Link
+                href="/captain"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-ink hover:bg-amber-50"
+              >
+                <Shield className="h-4 w-4 text-amber-600" />
+                Panel Kapten
+              </Link>
               <div className="border-t border-brand-50" />
             </>
           )}

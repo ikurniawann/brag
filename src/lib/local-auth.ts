@@ -8,7 +8,7 @@ export type LocalUser = {
   id: string;
   email: string;
   full_name: string;
-  role: "member" | "admin" | "super_admin";
+  role: "member" | "captain" | "admin" | "super_admin";
 };
 
 function hashToken(token: string) {

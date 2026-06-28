@@ -1,8 +1,8 @@
 "use client";
 
-import { Check, ChevronDown, Pencil, ShieldCheck, ShieldOff, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Pencil, Shield, ShieldCheck, ShieldOff, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Member = {
   id: string;
@@ -149,14 +149,32 @@ function EditRow({
   );
 }
 
-function RoleToggleButton({ member, onDone }: { member: Member; onDone: () => void }) {
-  const [loading, setLoading] = useState(false);
-  const isAdmin = member.role === "admin";
+const ROLE_META: Record<string, { label: string; badge: string; icon: React.ReactNode }> = {
+  admin:   { label: "Admin",   badge: "bg-brand-50 text-brand-700",   icon: <ShieldCheck className="h-3 w-3" /> },
+  captain: { label: "Kapten",  badge: "bg-amber-50 text-amber-700",   icon: <Shield className="h-3 w-3" /> },
+  member:  { label: "Member",  badge: "bg-slate-50 text-slate-500",   icon: <ShieldOff className="h-3 w-3" /> },
+};
 
-  async function toggle() {
-    const newRole = isAdmin ? "member" : "admin";
-    const label = isAdmin ? `Turunkan ${member.full_name} ke Member?` : `Jadikan ${member.full_name} Admin?`;
-    if (!window.confirm(label)) return;
+const ALL_ROLES = ["admin", "captain", "member"] as const;
+type RoleOption = typeof ALL_ROLES[number];
+
+function RolePickerButton({ member, onDone }: { member: Member; onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  async function changeRole(newRole: RoleOption) {
+    setOpen(false);
+    const meta = ROLE_META[newRole];
+    if (!window.confirm(`Ubah role ${member.full_name} menjadi ${meta.label}?`)) return;
 
     setLoading(true);
     const res = await fetch(`/api/admin/members/${member.id}`, {
@@ -174,25 +192,37 @@ function RoleToggleButton({ member, onDone }: { member: Member; onDone: () => vo
     onDone();
   }
 
+  const current = member.role in ROLE_META ? member.role : "member";
+  const meta = ROLE_META[current];
+
   return (
-    <button
-      onClick={toggle}
-      disabled={loading}
-      title={isAdmin ? "Turunkan ke Member" : "Jadikan Admin"}
-      className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold transition disabled:opacity-50 ${
-        isAdmin
-          ? "border-red-100 bg-red-50 text-red-700 hover:bg-red-100"
-          : "border-brand-100 bg-white text-brand-700 hover:border-brand-300 hover:bg-brand-50"
-      }`}
-    >
-      {loading ? (
-        "..."
-      ) : isAdmin ? (
-        <><ShieldOff className="h-3 w-3" /> Turunkan</>
-      ) : (
-        <><ShieldCheck className="h-3 w-3" /> Jadi Admin</>
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        disabled={loading}
+        className="flex items-center gap-1 rounded-lg border border-brand-100 bg-white px-2.5 py-1 text-xs font-bold text-muted transition hover:border-brand-300 hover:text-ink disabled:opacity-50"
+      >
+        {loading ? "..." : <>{open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} Role</>}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-7 z-20 w-36 overflow-hidden rounded-xl border border-brand-100 bg-white shadow-lg">
+          {ALL_ROLES.filter((r) => r !== current).map((r) => {
+            const m = ROLE_META[r];
+            return (
+              <button
+                key={r}
+                onClick={() => changeRole(r)}
+                className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold text-ink hover:bg-brand-50"
+              >
+                {m.icon}
+                Jadikan {m.label}
+              </button>
+            );
+          })}
+        </div>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -293,13 +323,14 @@ export function MemberTable({
                         </span>
                       </td>
                       <td className="px-3 py-2.5">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                          m.role === "admin"
-                            ? "bg-brand-50 text-brand-700"
-                            : "bg-slate-50 text-slate-500"
-                        }`}>
-                          {m.role === "admin" ? "Admin" : "Member"}
-                        </span>
+                        {(() => {
+                          const roleMeta = ROLE_META[m.role] ?? ROLE_META.member;
+                          return (
+                            <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${roleMeta.badge}`}>
+                              {roleMeta.label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-1.5">
@@ -310,7 +341,7 @@ export function MemberTable({
                             <Pencil className="h-3 w-3" />
                             Edit
                           </button>
-                          <RoleToggleButton
+                          <RolePickerButton
                             member={m}
                             onDone={() => router.refresh()}
                           />

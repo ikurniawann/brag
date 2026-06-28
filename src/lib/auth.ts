@@ -24,3 +24,17 @@ export async function requireAdmin() {
 
   return { user };
 }
+
+export async function requireCaptain() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  if (user.role !== "captain" && user.role !== "admin") {
+    redirect("/");
+  }
+
+  return { user };
+}

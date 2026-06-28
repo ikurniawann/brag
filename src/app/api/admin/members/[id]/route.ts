@@ -16,7 +16,7 @@ export async function PATCH(
 
   // Role promotion/demotion — separate path, cannot demote yourself
   if (role !== undefined) {
-    if (role !== "admin" && role !== "member") {
+    if (role !== "admin" && role !== "captain" && role !== "member") {
       return Response.json({ error: "Role tidak valid." }, { status: 400 });
     }
 
@@ -24,7 +24,7 @@ export async function PATCH(
       `select user_id from members where id = $1`, [id]
     );
     if (!target[0]) return Response.json({ error: "Member tidak ditemukan." }, { status: 404 });
-    if (role === "member" && target[0].user_id === user.id) {
+    if (role !== "admin" && target[0].user_id === user.id) {
       return Response.json({ error: "Tidak bisa menurunkan role diri sendiri." }, { status: 400 });
     }
 

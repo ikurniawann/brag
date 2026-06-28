@@ -16,6 +16,7 @@ const navItems = [
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
   const isAdmin = user?.role === "admin";
+  const isCaptain = user?.role === "captain";
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-28">
@@ -42,6 +43,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                 : "?"
             }
             isAdmin={isAdmin}
+            isCaptain={isCaptain}
           />
         </div>
       </header>
