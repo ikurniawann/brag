@@ -21,8 +21,8 @@ export type SeasonMember = {
 
 export type PendingTyfcb = {
   id: string;
-  giver_id: string;
-  receiver_name: string;
+  seller_id: string;   // receiver_id in DB — team member who submitted
+  buyer_name: string;  // giver_id in DB — buyer who gets TYFCB points
   nilai: number;
   tanggal: string;
   computed_score: number;
@@ -68,19 +68,20 @@ async function getAllSeasonMembers(seasonId: string): Promise<SeasonMember[]> {
 }
 
 async function getPendingTyfcb(teamId: string, seasonId: string): Promise<PendingTyfcb[]> {
+  // After the TYFCB logic fix: giver_id = buyer (gets points), receiver_id = seller (team member who submitted)
   const { rows } = await query<PendingTyfcb>(`
     select
       te.id,
-      te.giver_id,
-      u_recv.full_name as receiver_name,
+      te.receiver_id   as seller_id,
+      u_buyer.full_name as buyer_name,
       te.nilai::int    as nilai,
       to_char(te.tanggal, 'DD Mon YYYY') as tanggal,
       te.computed_score
     from tyfcb_entries te
-    join members m_giver on m_giver.id = te.giver_id
-    join members m_recv  on m_recv.id  = te.receiver_id
-    join app_users u_recv on u_recv.id = m_recv.user_id
-    where m_giver.team_id = $1
+    join members m_seller on m_seller.id = te.receiver_id
+    join members m_buyer  on m_buyer.id  = te.giver_id
+    join app_users u_buyer on u_buyer.id = m_buyer.user_id
+    where m_seller.team_id = $1
       and te.season_id = $2
       and te.status = 'pending'
     order by te.created_at desc

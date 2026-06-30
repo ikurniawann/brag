@@ -24,7 +24,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 type TyfcbEntry = {
   id: string;
-  receiver_name: string | null;
+  buyer_name: string | null;  // giver_id in DB — buyer who gets TYFCB points
   nilai: number;
   tanggal: string;
   status: string;
@@ -59,16 +59,16 @@ async function getMemberHistory(userId: string) {
     query<TyfcbEntry>(`
       select
         te.id,
-        u.full_name as receiver_name,
+        u.full_name as buyer_name,
         te.nilai::int,
         to_char(te.tanggal, 'DD Mon YYYY') as tanggal,
         te.status::text as status,
         te.computed_score,
         te.rejection_reason
       from tyfcb_entries te
-      left join members mr on mr.id = te.receiver_id
-      left join app_users u on u.id = mr.user_id
-      where te.giver_id = $1
+      left join members mg on mg.id = te.giver_id
+      left join app_users u on u.id = mg.user_id
+      where te.receiver_id = $1
       order by te.created_at desc
     `, [memberId]),
     query<VisitorEntry>(`
@@ -130,7 +130,7 @@ export default async function HistoryPage() {
                 >
                   <div className="min-w-0">
                     <p className="truncate font-black text-ink">
-                      → {entry.receiver_name ?? "—"}
+                      Pembeli: {entry.buyer_name ?? "—"}
                     </p>
                     <p className="mt-0.5 text-sm text-muted">
                       Rp {Number(entry.nilai).toLocaleString("id-ID")} · {entry.tanggal}

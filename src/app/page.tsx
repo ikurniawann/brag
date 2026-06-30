@@ -162,15 +162,15 @@ async function getRecentTyfcb(memberId: string) {
     tanggal: string;
     status: string;
     computed_score: number | null;
-    receiver_name: string | null;
+    buyer_name: string | null;
   }>(`
     select
       te.id, te.nilai, to_char(te.tanggal, 'DD Mon YYYY') as tanggal, te.status, te.computed_score,
-      u.full_name as receiver_name
+      u.full_name as buyer_name
     from tyfcb_entries te
-    left join members mr on mr.id = te.receiver_id
-    left join app_users u on u.id = mr.user_id
-    where te.giver_id = $1
+    left join members mg on mg.id = te.giver_id
+    left join app_users u on u.id = mg.user_id
+    where te.receiver_id = $1
     order by te.created_at desc
     limit 5
   `, [memberId]);
@@ -464,7 +464,7 @@ export default async function MemberDashboardPage() {
                   >
                     <div className="min-w-0">
                       <p className="truncate font-bold text-ink">
-                        → {entry.receiver_name ?? "—"}
+                        Pembeli: {entry.buyer_name ?? "—"}
                       </p>
                       <p className="text-xs text-muted">
                         Rp {Number(entry.nilai).toLocaleString("id-ID")} · {entry.tanggal}

@@ -90,8 +90,9 @@ export function TyfcbAdminClient({ initial }: { initial: TyfcbRow[] }) {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted">Pembeli:</span>
                     <p className="font-black text-ink">{e.giver_name}</p>
-                    <span className="text-xs text-muted">→</span>
+                    <span className="text-xs text-muted">· Penjual:</span>
                     <p className="font-bold text-ink">{e.receiver_name}</p>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-black ${STATUS_STYLE[e.status]}`}>
                       {STATUS_LABEL[e.status]}

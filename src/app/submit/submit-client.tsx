@@ -113,7 +113,7 @@ function TyfcbForm() {
     e.preventDefault();
     setError("");
 
-    if (!selected) { setError("Pilih penerima bisnis terlebih dahulu."); return; }
+    if (!selected) { setError("Pilih pemberi bisnis (pembeli) terlebih dahulu."); return; }
     if (!rawNilai || Number(rawNilai) <= 0) { setError("Masukkan nilai transaksi yang valid."); return; }
     if (!tanggalRef.current?.value) { setError("Masukkan tanggal transaksi."); return; }
 
@@ -122,7 +122,7 @@ function TyfcbForm() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        receiver_id: selected.id,
+        buyer_id: selected.id,
         nilai: rawNilai,
         tanggal: tanggalRef.current.value,
       }),
@@ -159,8 +159,8 @@ function TyfcbForm() {
       <div>
         <p className="mb-1 text-sm font-bold uppercase tracking-[0.12em] text-brand-700">TYFCB</p>
         <p className="text-sm text-muted">
-          Catat bisnis yang kamu bantu closing untuk sesama member BNI Grow.
-          Skor masuk ke akunmu (giver), bukan penerima.
+          Catat bisnis yang kamu terima dari sesama member BNI Grow.
+          Skor TYFCB masuk ke akun <span className="font-semibold text-ink">pembeli</span> yang memberimu bisnis.
         </p>
       </div>
 
@@ -170,7 +170,7 @@ function TyfcbForm() {
 
       <div>
         <label className="mb-2 block text-sm font-black text-ink">
-          Penerima bisnis <span className="text-brand-600">*</span>
+          Pemberi Bisnis (Pembeli) <span className="text-brand-600">*</span>
         </label>
         <div className="relative">
           <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-muted">

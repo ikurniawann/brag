@@ -31,11 +31,11 @@ function TyfcbForm({
   allMembers: SeasonMember[];
 }) {
   const router = useRouter();
-  const [form, setForm] = useState({ member_id: "", receiver_id: "", nilai: "", tanggal: "" });
+  const [form, setForm] = useState({ member_id: "", buyer_id: "", nilai: "", tanggal: "" });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const receivers = allMembers.filter((m) => m.id !== form.member_id);
+  const buyers = allMembers.filter((m) => m.id !== form.member_id);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,10 +46,10 @@ function TyfcbForm({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        member_id:   form.member_id,
-        receiver_id: form.receiver_id,
-        nilai:       Number(form.nilai),
-        tanggal:     form.tanggal,
+        member_id: form.member_id,
+        buyer_id:  form.buyer_id,
+        nilai:     Number(form.nilai),
+        tanggal:   form.tanggal,
       }),
     });
 
@@ -62,7 +62,7 @@ function TyfcbForm({
     }
 
     setMsg({ ok: true, text: `TYFCB berhasil dikirim. Skor estimasi: ${data.computed_score} poin.` });
-    setForm({ member_id: "", receiver_id: "", nilai: "", tanggal: "" });
+    setForm({ member_id: "", buyer_id: "", nilai: "", tanggal: "" });
     router.refresh();
   }
 
@@ -82,7 +82,7 @@ function TyfcbForm({
           required
           className="w-full rounded-2xl border border-brand-100 bg-white px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500"
           value={form.member_id}
-          onChange={(e) => setForm({ ...form, member_id: e.target.value, receiver_id: "" })}
+          onChange={(e) => setForm({ ...form, member_id: e.target.value, buyer_id: "" })}
         >
           <option value="">— Pilih anggota</option>
           {members.map((m) => (
@@ -92,16 +92,16 @@ function TyfcbForm({
       </label>
 
       <label className="block">
-        <span className="mb-1.5 block text-sm font-bold text-ink">Kepada (penerima TYFCB)</span>
+        <span className="mb-1.5 block text-sm font-bold text-ink">Pemberi Bisnis (Pembeli) — mendapat poin</span>
         <select
           required
           disabled={!form.member_id}
           className="w-full rounded-2xl border border-brand-100 bg-white px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50"
-          value={form.receiver_id}
-          onChange={(e) => setForm({ ...form, receiver_id: e.target.value })}
+          value={form.buyer_id}
+          onChange={(e) => setForm({ ...form, buyer_id: e.target.value })}
         >
-          <option value="">— Pilih penerima</option>
-          {receivers.map((m) => (
+          <option value="">— Pilih pembeli</option>
+          {buyers.map((m) => (
             <option key={m.id} value={m.id}>
               {m.full_name}{m.nama_tim ? ` · ${m.nama_tim}` : ""}
             </option>
@@ -384,7 +384,7 @@ function MemberListTab({
   return (
     <div className="space-y-4">
       {members.map((m) => {
-        const myTyfcb  = pendingTyfcb.filter((t) => t.giver_id === m.id);
+        const myTyfcb  = pendingTyfcb.filter((t) => t.seller_id === m.id);
         const myVisitors = terdaftarVisitors.filter((v) => v.inviter_id === m.id);
 
         return (
@@ -414,14 +414,14 @@ function MemberListTab({
                     {myTyfcb.map((t) => (
                       <div key={t.id} className="flex items-center justify-between gap-3 rounded-xl border border-brand-50 bg-brand-50/50 px-3 py-2">
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-ink">→ {t.receiver_name}</p>
+                          <p className="truncate text-sm font-semibold text-ink">Pembeli: {t.buyer_name}</p>
                           <p className="text-xs text-muted">
                             {formatCurrency(t.nilai)} · {t.tanggal} · {t.computed_score} poin
                           </p>
                         </div>
                         <VoidButton
                           url={`/api/captain/tyfcb/${t.id}/void`}
-                          label={`TYFCB ke ${t.receiver_name}`}
+                          label={`TYFCB dari ${t.buyer_name}`}
                           onDone={onRefresh}
                         />
                       </div>
